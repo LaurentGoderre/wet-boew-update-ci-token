@@ -1,6 +1,6 @@
 var request = require('request');
 
-var ghUser = process.env.WET_BOT_USER,
+var ghUser = 'wet-boew-bot',
   ghPass = process.env.WET_BOT_PASS,
   authUri = 'https://api.github.com/authorizations'
   ghAuthOptions = {
