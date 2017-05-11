@@ -3,6 +3,7 @@ var request = require('request');
 var ghUser = 'wet-boew-bot',
   ghPass = process.env.WET_BOT_PASS,
   travisRootUrl = 'https://api.travis-ci.org',
+  travisAuthEndpoint = '/auth/github',
   ghAuthOptions = {
     url: 'https://api.github.com/authorizations',
     auth: {
@@ -24,12 +25,12 @@ var ghUser = 'wet-boew-bot',
   tokenId = 'GH_TOKEN'
   tokenMessage = 'Token for Pushing from Travis CI',
   repos = [
-    'wet-boew/wet-boew',
-    'wet-boew/theme-base',
-    'wet-boew/theme-gc-intranet',
-    'wet-boew/theme-gcwu-fegc',
-    'wet-boew/GCWeb',
-    'wet-boew/wet-boew-styleguide'
+    {slug: 'wet-boew/wet-boew'},
+    {slug: 'wet-boew/theme-base'},
+    {slug: 'wet-boew/theme-gc-intranet'},
+    {slug: 'wet-boew/theme-gcwu-fegc'},
+    {slug: 'wet-boew/GCWeb'},
+    {slug: 'wet-boew/wet-boew-styleguide'}
 
   ]
   checkToken = function(tokens) {
@@ -71,7 +72,7 @@ var ghUser = 'wet-boew-bot',
   authenticateTravis = function() {
     var token = process.env.GH_TOKEN;
     request(Object.assign({}, travisOptions, {
-      url: travisRootUrl + '/auth/github',
+      url: travisRootUrl + travisAuthEndpoint,
       method: 'POST',
       body: {
         github_token: token
@@ -82,44 +83,46 @@ var ghUser = 'wet-boew-bot',
       updateCITokens(token, travisAuth);
     });
   },
-  getRepoTravisId = function(slug, cb) {
-    request(Object.assign({}, travisOptions, {
-      url: travisRootUrl + '/repos/' + slug
-    }), function(error, response, body) {
-      cb(body.repo.id);
-    });
-  },
-  getTravisEnvVarId = function(repoId, travisAuth, cb) {
-    var options = Object.assign({}, travisOptions, {
-      url: travisRootUrl + '/settings/env_vars?repository_id=' + repoId
-    });
-    options.headers.Authorization = 'token ' + travisAuth;
-    request(options, function(error, response, body) {
-      var e, env_var;
-      for (e = 0; e < body.env_vars.length; e++) {
-        env_var = body.env_vars[e];
-        if (env_var.name === "GH_TOKEN") {
-          cb(env_var.id);
-        }
-      }
-    });
-  },
-  updateTravisEnvVar = function(token, repoId, env_var_id, travisAuth, cb) {
-    var options = Object.assign({}, travisOptions, {
-      url: travisRootUrl + '/settings/env_vars/' + env_var_id + '?repository_id=' + repoId,
-      method: "PATCH",
-      body: {
-        env_var: {
-          value: token
-        }
-      }
-    });
-    options.headers.Authorization = 'token ' + travisAuth;
-    request(options, function(error, response, body) {
-      cb();
-    });
-  },
+
   updateTravisRepoEnvVar = function(token, repo_slug, env_var, travisAuth) {
+    var getRepoTravisId = function(slug, cb) {
+      request(Object.assign({}, travisOptions, {
+        url: travisRootUrl + '/repos/' + slug
+      }), function(error, response, body) {
+        cb(body.repo.id);
+      });
+    },
+    getTravisEnvVarId = function(repoId, travisAuth, cb) {
+      var options = Object.assign({}, travisOptions, {
+        url: travisRootUrl + '/settings/env_vars?repository_id=' + repoId
+      });
+      options.headers.Authorization = 'token ' + travisAuth;
+      request(options, function(error, response, body) {
+        var e, env_var;
+        for (e = 0; e < body.env_vars.length; e++) {
+          env_var = body.env_vars[e];
+          if (env_var.name === "GH_TOKEN") {
+            cb(env_var.id);
+          }
+        }
+      });
+    },
+    updateTravisEnvVar = function(token, repoId, env_var_id, travisAuth, cb) {
+      var options = Object.assign({}, travisOptions, {
+        url: travisRootUrl + '/settings/env_vars/' + env_var_id + '?repository_id=' + repoId,
+        method: "PATCH",
+        body: {
+          env_var: {
+            value: token
+          }
+        }
+      });
+      options.headers.Authorization = 'token ' + travisAuth;
+      request(options, function(error, response, body) {
+        cb();
+      });
+    };
+    
     getRepoTravisId(repo_slug, function(repoId){
       getTravisEnvVarId(repoId, travisAuth, function(env_var_id) {
         updateTravisEnvVar(token, repoId, env_var_id, travisAuth, function() {
@@ -130,7 +133,7 @@ var ghUser = 'wet-boew-bot',
   },
   updateCITokens = function(token, travisAuth) {
     for (var r = 0; r < repos.length; r++) {
-      updateTravisRepoEnvVar(token, repos[r], tokenId, travisAuth);
+      updateTravisRepoEnvVar(token, repos[r].slug, tokenId, travisAuth);
     }
 
   };
