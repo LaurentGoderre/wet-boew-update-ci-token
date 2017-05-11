@@ -24,7 +24,12 @@ var ghUser = 'wet-boew-bot',
   tokenMessage = 'Token for Pushing from Travis CI',
   repos = [
     'wet-boew/wet-boew',
-    'wet-boew/theme-base'
+    'wet-boew/theme-base',
+    'wet-boew/theme-gc-intranet',
+    'wet-boew/theme-gcwu-fegc',
+    'wet-boew/GCWeb',
+    'wet-boew/wet-boew-styleguide'
+
   ]
   checkToken = function(tokens) {
     var t, token;
