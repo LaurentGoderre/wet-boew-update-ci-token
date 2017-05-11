@@ -12,6 +12,7 @@ var ghUser = 'wet-boew-bot',
     headers: {
       'User-Agent': 'npm request'
     },
+    json: true
   },
   travisOptions = {
     headers: {
@@ -135,5 +136,5 @@ var ghUser = 'wet-boew-bot',
   };
 
 request(ghAuthOptions, function(error, response, body) {
-    checkToken(JSON.parse(body))
-  });
+  checkToken(body)
+});
