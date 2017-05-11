@@ -69,13 +69,13 @@ var ghUser = 'wet-boew-bot',
       authenticateTravis(token.token);
     });
   },
-  authenticateTravis = function() {
-    var token = process.env.GH_TOKEN;
+  authenticateTravis = function(token) {
+    var ghToken = process.env.GH_TOKEN;
     request(Object.assign({}, travisOptions, {
       url: travisRootUrl + travisAuthEndpoint,
       method: 'POST',
       body: {
-        github_token: token
+        github_token: ghToken
       }
     }), function(error, response, body) {
       var travisAuth = body.access_token;
