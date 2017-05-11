@@ -2,17 +2,23 @@ var request = require('request');
 
 var ghUser = 'wet-boew-bot',
   ghPass = process.env.WET_BOT_PASS,
-  authUri = 'https://api.github.com/authorizations'
+  travisRootUrl = "https://api.travis-ci.org",
   ghAuthOptions = {
-    url: authUri,
-    headers: {
-      'User-Agent': 'request'
-    },
+    url: 'https://api.github.com/authorizations',
     auth: {
       user: ghUser,
       pass: ghPass
-    }
+    },
+    headers: {
+      'User-Agent': 'npm request'
+    },
   },
+  travisOptions = {
+    headers: {
+      'User-Agent': 'Travis; npm request',
+      'Accept': 'application/vnd.travis-ci.2+json'
+    },
+  }
   tokenMessage = "Test Token"//""Token for Pushing from Travis CI",
   checkToken = function(tokens) {
     var t, token;
@@ -31,6 +37,7 @@ var ghUser = 'wet-boew-bot',
       method: "DELETE",
       url: ghAuthOptions.url + "/" + tokenId
     }), function(error, response, body) {
+      console.log("Deleted token");
       cb();
     })
   },
@@ -45,11 +52,26 @@ var ghUser = 'wet-boew-bot',
         note: tokenMessage
       }
     }), function(error, response, token) {
-      updateCITokens(token.token);
+      console.log("Created new token");
+      authenticateTravis(token.token);
     });
   },
-  updateCITokens = function(token) {
-    console.log("Updating CI with token " + token)
+  authenticateTravis = function(token) {
+    request(Object.assign({}, travisOptions, {
+      url: travisRootUrl + "/auth/github",
+      method: "POST",
+      json: true,
+      body: {
+        github_token: token
+      }
+    }), function(error, response, body) {
+      var travisAuth = body.access_token;
+      console.log("Authenticated with Travis CI");
+      updateCITokens(token, travisAuth);
+    });
+  }
+  updateCITokens = function(token, travisAUth) {
+    console.log("Updating CI with token " + token + "Travis Auth " + travisAUth)
   };
 
 request(ghAuthOptions, function(error, response, body) {
