@@ -14,17 +14,19 @@ var ghUser = 'wet-boew-bot',
     json: true
   },
   travisOptions = {
-    headers: {
-      'User-Agent': 'Travis; npm request',
-      'Accept': 'application/vnd.travis-ci.2+json'
-    },
     json: true
   },
+  travisHeader = {
+    'User-Agent': 'Travis; npm request',
+    'Accept': 'application/vnd.travis-ci.2+json'
+  },
   travisPublicOptions = Object.assign({}, travisOptions, {
-    url: 'https://api.travis-ci.org'
+    url: 'https://api.travis-ci.org',
+    headers: Object.assign({}, travisHeader)
   }),
   travisPrivateOptions = Object.assign({}, travisOptions, {
-    url: 'https://api.travis-ci.com'
+    url: 'https://api.travis-ci.com',
+    headers: Object.assign({}, travisHeader)
   }),
   travisAuthEndpoint = '/auth/github',
   tokenId = 'GH_TOKEN',
@@ -138,11 +140,14 @@ var ghUser = 'wet-boew-bot',
   },
   updateCITokens = function(token) {
     authenticateTravis(travisPublicOptions, function() {
+      var repo, options;
       console.log('Authenticated with Travis CI');
       authenticateTravis(travisPrivateOptions, function() {
         console.log('Authenticated with Travis CI Pro');
         for (var r = 0; r < repos.length; r++) {
-          updateTravisRepoEnvVar(token, repos[r].slug, tokenId, repos[r].private ? travisPrivateOptions : travisPublicOptions);
+          repo = repos[r];
+          options = !repo.private ? travisPublicOptions : travisPrivateOptions
+          updateTravisRepoEnvVar(token, repo.slug, tokenId, options);
         }
       });
     });
