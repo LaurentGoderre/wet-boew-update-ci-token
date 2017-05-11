@@ -76,14 +76,14 @@ var ghUser = 'wet-boew-bot',
   authenticateTravis = function(options, cb) {
     var ghToken = process.env.GH_TOKEN,
       newOptions = Object.assign({}, options, {
-        method: "POST",
+        method: 'POST',
         body: {
           github_token: ghToken
         }
       });
       newOptions.url += travisAuthEndpoint;
     request(newOptions, function(error, response, body) {
-      if (typeof body === "string") {
+      if (typeof body === 'string') {
         console.error(body);
         process.exit(1);
       }
@@ -107,7 +107,7 @@ var ghUser = 'wet-boew-bot',
         var e, env_var;
         for (e = 0; e < body.env_vars.length; e++) {
           env_var = body.env_vars[e];
-          if (env_var.name === "GH_TOKEN") {
+          if (env_var.name === 'GH_TOKEN') {
             cb(env_var.id);
           }
         }
@@ -115,7 +115,7 @@ var ghUser = 'wet-boew-bot',
     },
     updateTravisEnvVar = function(repoId, env_var_id, cb) {
       var newOptions = Object.assign({}, options, {
-        method: "PATCH",
+        method: 'PATCH',
         body: {
           env_var: {
             value: token
@@ -131,7 +131,7 @@ var ghUser = 'wet-boew-bot',
     getRepoTravisId(function(repoId){
       getTravisEnvVarId(repoId, function(env_var_id) {
         updateTravisEnvVar(repoId, env_var_id, function() {
-          console.log("Updated token for repo " + repo_slug);
+          console.log('Updated token for repo ' + repo_slug);
         });
       });
     });
@@ -149,5 +149,15 @@ var ghUser = 'wet-boew-bot',
   };
 
 request(ghAuthOptions, function(error, response, body) {
+  var error;
+  if (body.message) {
+    error = body.message;
+
+    if (error === 'Bad credentials') {
+      error += ' for user wet-boew-bot';
+    }
+    console.error(error);
+    process.exit(1);
+  }
   checkToken(body)
 });
