@@ -1,12 +1,14 @@
 var request = require('request');
 var prompt = require('password-prompt');
+var netrc = require('netrc');
 
-(process.env.WET_BOT_PASS ?
-  new Promise(function(resolve) {
+new Promise(function(resolve) {
+  if (process.env.WET_BOT_PASS) {
     resolve(process.env.WET_BOT_PASS)
-  }) :
-  prompt('WET Bot Password: ')
-).then(function(ghPass) {
+  } else {
+    prompt('WET Bot Password: ').then(resolve);
+  }
+}).then(function(ghPass) {
   var ghUser = 'wet-boew-bot',
     ghAuthOptions = {
       url: 'https://api.github.com/authorizations',
@@ -83,6 +85,9 @@ var prompt = require('password-prompt');
       });
     },
     authenticateTravis = function(options, cb) {
+      (
+
+      )
       var ghToken = process.env.GH_TOKEN,
         newOptions = Object.assign({}, options, {
           method: 'POST',
