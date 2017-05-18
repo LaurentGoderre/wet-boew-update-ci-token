@@ -1,12 +1,14 @@
 var request = require('request');
 var prompt = require('password-prompt');
+var netrc = require('netrc');
 
-(process.env.WET_BOT_PASS ?
-  new Promise(function(resolve) {
+new Promise(function(resolve) {
+  if (process.env.WET_BOT_PASS) {
     resolve(process.env.WET_BOT_PASS)
-  }) :
-  prompt('WET Bot Password: ')
-).then(function(ghPass) {
+  } else {
+    prompt('WET Bot Password: ').then(resolve);
+  }
+}).then(function(ghPass) {
   var ghUser = 'wet-boew-bot',
     ghAuthOptions = {
       url: 'https://api.github.com/authorizations',
@@ -83,21 +85,34 @@ var prompt = require('password-prompt');
       });
     },
     authenticateTravis = function(options, cb) {
-      var ghToken = process.env.GH_TOKEN,
-        newOptions = Object.assign({}, options, {
-          method: 'POST',
-          body: {
-            github_token: ghToken
-          }
-        });
-        newOptions.url += travisAuthEndpoint;
-      request(newOptions, function(error, response, body) {
-        if (typeof body === 'string') {
-          console.error(body);
-          process.exit(1);
+      new Promise(function(resolve) {
+        var myNetrc = netrc();
+
+        if (process.env.GH_TOKEN) {
+          resolve(process.env.GH_TOKEN);
+        } else if (myNetrc['github.com']) {
+          resolve(myNetrc['github.com'].login)
+        } else if (myNetrc['api.github.com']) {
+          resolve(myNetrc['api.github.com'].login)
+        } else {
+          prompt('Token for your GitHub Account: ').then(resolve);
         }
-        options.headers.Authorization = 'token ' + body.access_token;
-        cb();
+      }).then(function(ghToken) {
+        var newOptions = Object.assign({}, options, {
+            method: 'POST',
+            body: {
+              github_token: ghToken
+            }
+          });
+          newOptions.url += travisAuthEndpoint;
+        request(newOptions, function(error, response, body) {
+          if (typeof body === 'string') {
+            console.error(body);
+            process.exit(1);
+          }
+          options.headers.Authorization = 'token ' + body.access_token;
+          cb();
+        });
       });
     },
 

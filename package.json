@@ -4,6 +4,7 @@
   "description": "",
   "main": "index.js",
   "dependencies": {
+    "netrc": "^0.1.4",
     "password-prompt": "^1.0.2",
     "request": "^2.81.0"
   },
