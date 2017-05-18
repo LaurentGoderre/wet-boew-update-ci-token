@@ -36,6 +36,7 @@ var ghUser = 'wet-boew-bot',
     {slug: 'wet-boew/theme-base'},
     {slug: 'wet-boew/theme-gc-intranet'},
     {slug: 'wet-boew/theme-gcwu-fegc'},
+    {slug: 'wet-boew/theme-ogpl'},
     {slug: 'wet-boew/GCWeb'},
     {slug: 'wet-boew/wet-boew-styleguide'},
     {slug: 'bci-web/gcweb-cdn', private: true}
